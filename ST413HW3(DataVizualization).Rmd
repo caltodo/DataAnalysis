@@ -1,0 +1,316 @@
+---
+title: "ST 413 Homework 3"
+author: "Calvin Todorovich"
+date: "4/24/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 20.9.11
+```{r Shuttles, echo=FALSE, message=FALSE, warning=FALSE}
+library(tinytex)
+library(ggplot2)
+library(Sleuth3)
+    shuttles <- ex2011
+    shuttles$Failure <- relevel(shuttles$Failure, ref = "No") #baseline (0) = No
+    
+    ggplot(shuttles) +
+      geom_bar(aes(x = Temperature, fill = Failure)) #Beautiful
+    
+```
+
+####(a) 
+    $$  Model: Failure = \beta_0 +\beta_1Temperature  $$    
+
+    AIC = 27.03
+    
+    The model estimates an intercept of 10.88 of log odds of failure, with a standard error of 5.7, and Temperature has an estimated -.17 effect on the log odds of failure, with a standard error of .08. This means it is estimated that with each unit increase in Temperature, the odds of failure are influenced by a factor of .84. In other words, Temperature is estimated to have a negative effect on failure.
+    
+####(b)    
+
+    Wald Test on Temperature:
+    The Wald test concluded that the Temperature coefficient is statistically significant, with a p-value of .04, and most likely not zero.
+####(c)    
+    P-Value = .015 ==> Full model is most likely too simple.
+   
+    Removing Temperature would result in a Deviance reduction of 5.9, using dropterm()
+    Variables Removed = 1
+    
+$$ 1 - pchisq(5.9, 1) = .015 $$
+    
+    
+####(d)  
+ $$(-.013, -.326) => Back-Transform: (.72, .99)$$
+ 
+95% CI = pt est +- std err x t*   
+= -.17 +- (.08)x(1.96)   
+= -.17 - .157 = -.326     
+  -.17 + .157 = -.013
+  (.72, .99)
+   
+####(e)   
+    There is a predicted 99% chance of failure.
+    
+$$predict(model_a, data.frame(Temperature= 31, Failure = "Yes"), type= "response") = .99 $$
+
+
+####(f) 
+
+    We must be cautious with a prediction with those parameters because it is outside the range of explanatory, which means we can't say for sure if our model can significantly predict a response of a temperature that low, especially since there is a lot of error at the end points for the Bernoulli Distribution
+
+
+## 20.9.12
+#### (a)
+
+```{r Muscles, echo=FALSE, message=FALSE, warning=FALSE}
+library(Sleuth3)
+library(ggplot2)
+muscles <- ex2012  
+muscles$CK <- log(muscles$CK)
+
+
+muscles$Group <- relevel(muscles$Group, ref = "Control") #make baseline (0) = Control
+#scatter
+ggplot(muscles) + 
+  geom_point(aes(x = H, y = CK, color = Group))  #beautiful 
+
+    
+```
+Based on the scatterplot, it appears there is evidence of higher rates of Muscular Dystrophy in individuals with high counts of CK and H. The most convincing part of this plot is that the top left (high levels of CK AND H) is populated exclusively by Case observations.
+
+
+
+####(b)  
+
+$$model: Group =\beta_0 + \beta_1CK + \beta_2CK^2  $$
+      
+
+Is CK^2 statistically significant? No, p-value of .122
+There is evidence to suggest that the coefficient attached to CK^2 should be zero.
+
+Is a log transform needed?    
+    AIC Before Log Transformation: 91.47     
+    AIC After: 91.017    
+    ==> The Log transformation improves the models AIC, we should use the log transform.
+
+####(c) 
+$$  model_b: Group = \beta_0 + \beta_1log(CK) + \beta_2H  $$   
+output:
+AIC: 67.992
+INT: -28.9, STD ERR = 5.8, SIGNIFICANT
+CK: 4.02, STD ERR = .829, SIGNIFICANT
+H: .13, STD ERR = .037, SIGNIFICANT
+
+
+
+####(d) 
+$$ P-Value = 4.22 * 10^-15 $$   
+Drop in Deviance from removing log(CK) and H = 66.18, using dropterm().
+Degrees of Freedom = 2, since we remove two variables.
+$$ 1 - pchisq(66.18, 2) = 4.21884e-15 $$
+
+
+
+
+####(e) 
+With levels of CK = 300, H = 100, it is predicted there is about a 54% chance of being a carrier, while having average levels (CK = 80, H = 85), it is predicted there is about a 26% chance of being a carrier.
+
+## 20.9.13
+```{r Donner, echo=FALSE, message=FALSE, warning=FALSE}
+library(Sleuth3)
+library(ggplot2)
+donner <- case2001
+ggplot(donner) +
+  geom_bar(aes(x = Age, fill = Status, color = Sex))  
+```
+
+Based on a drop in deviance test the reduced model is preferred. This means that in the donner party, females younger than 30 had a better chance of survival than females older than 30.
+
+
+The hypothesis that A = 30 years may be tested by the drop-in-deviance test with the following reduced and full models for the logit: 
+
+Full: Status = Beta_0 + Beta_1*Age
+Reduced: Status = 0 + Beta_1(Age-30)
+
+anova(Full, Reduced, test = "LRT")
+P-Value = .07
+
+
+
+## 20.9.18
+
+```{r Crash, echo=FALSE, message=FALSE, warning=FALSE}
+library(Sleuth3)
+library(ggplot2)
+crash <- ex2018
+crash$Cause <- relevel(crash$Cause, ref = "NotTire") #make baseline (0) = Not Tire related
+
+ggplot(crash) +
+  geom_bar(aes(x = Make, fill = Cause)) 
+```
+
+
+$$ Model: Cause = \beta_0 + \beta_1Make + \beta_2VehicleAge + \beta_3Passengers + \beta_4VehicleAge^2 + \beta_5(Make*Passengers) $$    
+
+It is estimated that makes other than Ford have an affect of -1.5 on the log odds. This means that fatal accidents involving Fords are about 4.5 times more likely to have a tire failure involved, after taking vehicle age, number of passengers, and a dependency between Fords and number of passengers into account. A 95% confidence interval estimates between 1.1 and 18.5 affect on the odds of a tire related failure.
+
+MakeOther = -1.5, with Std Err = 2.226
+95% CI for Makes OTHER THAN FORD = -1.5 +- (.717)(1.96)
+ = (-2.9, -.097)
+ ==> Back-Transform = (.054, .907) = Confidence range of effect OTHER makes have on tire related failure.
+ 
+ 1/.54 = 18.5
+ 1/.907 = 1.1
+ = (1.1, 18.5) = Confidence range of effect FORDS have on tire related failure.
+ 
+ This model was found by using addterm(), dropterm(), and summary() to find a model with a low AIC and significant predicting coefficients. The model I ended up with has significant predictors for all estimated coefficients, and an AIC of 198.21.
+
+
+
+## Software:
+##### 20.9.11
+ex2011
+
+    shuttles <- ex2011
+    head(shuttles) 
+    shuttles$Failure <- relevel(shuttles$Failure, ref = "No") #baseline (0) = No
+    
+    ggplot(shuttles) +
+      geom_bar(aes(x = Temperature, fill = Failure)) #Beautiful
+    
+    model_a <- glm(formula = Failure ~ Temperature, data = shuttles, family = binomial)
+    summary(model_a)
+    
+    b (wald test for seeing if temperature is significant)
+    summary(model_a)
+    #p-value for Temp = .04 ==> Significant
+
+    
+     #c (Do the same thing using drop in deviance test)
+    #Full model: Failure = Beta_0 + Beta_1*Temperature
+    #Reduced model: Failure = Beta_0
+    
+    dropterm(model_a)
+    #diff = 5.9, df = 1
+    1 - pchisq(5.9, 1)
+    
+    #d (95% CI Temperature coefficient) = (est +- std err * 1.96)
+    
+    #e estimated logit of failure with 31 degrees temp
+    predict(model_a, data.frame(Temperature= 31, Failure = "Yes"), type= "response")
+    #predicted .99 ==> 99% chance of failure
+  
+    #f why last answer be treated cautiously
+
+##### 20.9.12
+    
+    ex2012
+
+    #a:  exploratory plot: one color for control, another for carrier
+
+    muscles <- ex2012  
+    head(muscles)
+    muscles$CK <- log(muscles$CK)
+    head(muscles) #log transform confirmed
+
+    muscles$Group <- relevel(muscles$Group, ref = "Control") #make baseline (0) = Control
+
+    ggplot(muscles) + 
+    geom_point(aes(x = H, y = CK, color = Group))  #beautiful 
+
+
+    #b: fit logistic model for carrier ~ CK + CK^2
+
+    model_musc <- glm(formula = Group ~ CK + poly(CK, 2, raw = TRUE),
+                  data = muscles, family = binomial)
+      
+    summary(model_musc)
+    #is CK^2 statistically sig? No, p-value of .122 should be removed
+
+
+    #is a log transform needed?
+    #have to run the code that logs that column again
+
+    summary(model_musc)
+    #AIC BEFORE: 91.47
+    #AIC AFTER: 91.017 ==> log transform improves, but is most likely unnecessary
+
+    #c: Fit log. mod for carrier ~ log(CK) + H
+
+    muscles #check to make sure its logged
+    modelb_musc <- glm(formula = Group ~ H + CK, data = muscles, family = binomial)    
+    summary(modelb_musc)  
+
+    #d: drop in dev to test if log(CK) AND H are shit
+    #model_musc <- glm(formula = Group ~) #HOW THE HELL DO I GET RID OF BOTH VARS
+    anova(modelb_musc, model_musc, test = "LRT")
+  
+    dropterm(modelb_musc)
+    #For CK && H: drop in dev =  66.18, df = 2
+    1 - pchisq(66.18, 2)
+  
+    #e: predict for Ck = 300, H = 100, compared to normal: CK = 80, H = 85
+    predict(modelb_musc, data.frame(CK= 300, H = 100), type= "response")
+    
+    predict(modelb_musc, data.frame(CK = 80, H = 85), type = "response")
+    
+
+##### 20.9.13
+    
+    ggplot(donner) +
+    geom_bar(aes(x = Age, fill = Status, color = Sex))
+
+    donner <- case2001
+    female <- donner[ which(donner$Sex=='Female'),]
+
+    agesub30 <- female$Age-30
+    agesub30
+
+    modreduced <- glm(Status ~ 0 +agesub30, data = female, family = "binomial")
+    summary(modreduced)
+    modfull <- glm(Status ~ agesub30, data = female, family = "binomial")
+    summary(modfull)
+
+    anova(modfull, modreduced, test = "LRT")
+    #P-Value = .07 ==> difference in the models
+
+
+##### 20.9.18
+
+    library(MASS)
+  
+    crash <- ex2018
+
+
+    head(crash)
+    crash$Cause <- relevel(crash$Cause, ref = "NotTire") #make baseline (0) = Not Tire related
+    #Success = car was a ford
+
+    ggplot(crash) +
+    geom_bar(aes(x = Make, fill = Cause)) 
+    
+    #There appear to be disproportionately more tire related incidents with Ford
+
+    mod_ford <- glm(formula = Cause ~ Make + VehicleAge + Passengers, data = crash, family = "binomial")
+
+    summary(mod_ford)
+    #All variables significant
+
+    dropterm(mod_ford) #shouldn't drop anything
+    
+    #consider a quadratic
+    crash$VA2 <- crash$VehicleAge^2
+    crash
+    mod_ford_2 <- glm(formula = Cause ~ Make + VehicleAge + Passengers + VA2, data = crash, family = "binomial")
+    summary(mod_ford_2)
+    #looks good
+
+
+    #interaction between Ford and passengers?
+    mod_f_int <- glm(formula = Cause ~ Make + VehicleAge + Passengers + VA2 + Make:Passengers, data = crash, family = "binomial")
+    summary(mod_f_int)
+    #interaction is not significant, but AIC is better, what should I do?
+    dropterm(mod_f_int) # Drop in deviance says keep it
